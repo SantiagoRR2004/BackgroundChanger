@@ -2,7 +2,6 @@ import platform
 import subprocess
 import ctypes
 import os
-from Modules import Utils
 
 def set_wallpaper(image_path: str) -> None:
     """
@@ -26,11 +25,6 @@ def set_wallpaper(image_path: str) -> None:
         '''
         subprocess.run(["osascript", "-e", script])
     elif system == "Linux":
-        desktop_env = subprocess.run(["echo $XDG_CURRENT_DESKTOP"], shell=True, capture_output=True, text=True).stdout.strip()
-        if "GNOME" not in desktop_env and "Unity" not in desktop_env:
-            print(f"Unsupported Linux desktop environment {desktop_env}")
-
-
         command = """export DISPLAY=":0"
 export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
 gsettings set org.gnome.desktop.background picture-uri"""
@@ -40,7 +34,7 @@ gsettings set org.gnome.desktop.background picture-uri"""
         else:
             command += f" {image_path}"
         command += "\n gsettings set org.gnome.desktop.background picture-options scaled"
-        Utils.runTerminal(command)
+        subprocess.run(command, shell=True)
 
 
     else:
