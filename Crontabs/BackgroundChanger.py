@@ -56,6 +56,7 @@ if __name__ == "__main__":
         "https://static.wikia.nocookie.net/eldenring/images/3/3d/ER_Icon_Remembrance_of_the_Starscourge.png/revision/latest/scale-to-width-down/1000?cb=20220412231542",
         "https://static.wikia.nocookie.net/eldenring/images/2/2c/ER_Icon_Remembrance_of_the_Regal_Ancestor.png/revision/latest?cb=20220412231535",
         "https://static.wikia.nocookie.net/eldenring/images/2/2b/ER_Icon_Remembrance_of_the_Naturalborn.png/revision/latest?cb=20220412231525",
+        "https://static.wikia.nocookie.net/eldenring/images/a/a6/ER_Icon_Remembrance_of_the_Lichdragon.png/revision/latest?cb=20220412231519",
     ]
 
 
