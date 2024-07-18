@@ -2,6 +2,8 @@ import platform
 import subprocess
 import ctypes
 import os
+import json
+
 
 def set_wallpaper(image_path: str) -> None:
     """
@@ -9,20 +11,20 @@ def set_wallpaper(image_path: str) -> None:
     If the image file exists we will say it is a path in the system.
     It should be an absolute path.
     If not we will suppose it is a URL and use it directly.
-    
+
     Args:
         image_path (str): The path to the image file.
     """
     system = platform.system()
-    
+
     if system == "Windows":
         ctypes.windll.user32.SystemParametersInfoW(20, 0, image_path, 3)
     elif system == "Darwin":  # macOS
-        script = f'''
+        script = f"""
         tell application "Finder"
             set desktop picture to POSIX file "{image_path}"
         end tell
-        '''
+        """
         subprocess.run(["osascript", "-e", script])
     elif system == "Linux":
         command = """export DISPLAY=":0"
@@ -33,31 +35,118 @@ gsettings set org.gnome.desktop.background picture-uri"""
             command += f" file://{image_path}"
         else:
             command += f" {image_path}"
-        command += "\n gsettings set org.gnome.desktop.background picture-options scaled"
+        command += (
+            "\n gsettings set org.gnome.desktop.background picture-options scaled"
+        )
         subprocess.run(command, shell=True)
-
 
     else:
         print("Unsupported operating system")
 
 
+def getBookmarks() -> dict:
+    """
+    Get the bookmarks from the Chrome browser.
+
+    Should work on Windows, macOS, and Linux.
+
+    Returns:
+        dict: The bookmarks tree.
+    """
+    system = platform.system()
+    if system == "Windows":
+        path = os.path.join(
+            os.path.expanduser("~"),
+            "AppData",
+            "Local",
+            "Google",
+            "Chrome",
+            "User Data",
+            "Default",
+            "Bookmarks",
+        )
+    elif system == "Darwin":  # macOS
+        path = os.path.join(
+            os.path.expanduser("~"),
+            "Library",
+            "Application Support",
+            "Google",
+            "Chrome",
+            "Default",
+            "Bookmarks",
+        )
+    elif system == "Linux":
+        path = os.path.join(
+            os.path.expanduser("~"), ".config", "google-chrome", "Default", "Bookmarks"
+        )
+    else:
+        print("Unsupported operating system")
+    with open(path, "r") as file:
+        data = json.load(file)
+    return data
+
+
+def findBookmarkFolder(bookmarks: dict, folder_name: str) -> dict:
+    """
+    Find a bookmark folder in the bookmarks tree.
+
+    Args:
+        bookmarks (dict): The bookmarks tree.
+        folder_name (str): The name of the folder to find.
+
+    Returns:
+        dict: The folder found or None if it was not found.
+    """
+    if "name" in bookmarks.keys() and bookmarks["name"] == folder_name:
+        return bookmarks
+    if "children" in bookmarks.keys():
+        for child in bookmarks["children"]:
+            folder = findBookmarkFolder(child, folder_name)
+            if folder:
+                return folder
+    return None
+
+
+def getBookmarksFromFolder(bookmarks: dict, solution: dict = {}) -> dict:
+    """
+    Get the bookmarks urls from a folder in the bookmarks tree.
+    It is a recursive function.
+
+    Args:
+        bookmarks (dict): The bookmarks tree.
+        solution (dict): The dictionary where the urls will be stored.
+
+    Returns:
+        dict: The dictionary with the urls.
+    """
+    if "type" in bookmarks.keys() and bookmarks["type"] == "url":
+        solution[bookmarks["name"]] = bookmarks["url"]
+    if "children" in bookmarks.keys():
+        for child in bookmarks["children"]:
+            solution.update(getBookmarksFromFolder(child, solution))
+    return solution
+
+
 if __name__ == "__main__":
     import random
-    backgrounds = [
-        "https://www.woodus.com/den/gallery/graphics/dq9ds/wallpaper/monsters.jpg",
-        "https://www.spriters-resource.com/resources/sheets/45/47529.png?updated=1460959095",
-        "https://darksouls.wiki.fextralife.com/file/Dark-Souls/Dark-Souls_Wallpaper7_1920_1200.jpg",
-        "https://steamuserimages-a.akamaihd.net/ugc/2058741034012526512/379E6434B473E7BE31C50525EB946D4212A8C8B3/",
-        "https://www.capcom-games.com/ghosttrick/assets/images/video/video_img1_en.jpg",
-        "https://images7.alphacoders.com/749/749807.png",
-        "https://ubuntu.com/wp-content/uploads/c919/noble1.png",
-        "https://static.wikia.nocookie.net/eldenring/images/3/38/ER_Icon_Remembrance_of_the_Grafted.png/revision/latest?cb=20220412231514",
-        "https://static.wikia.nocookie.net/eldenring/images/6/65/ER_Icon_Remembrance_of_the_Full_Moon_Queen.png/revision/latest?cb=20220412231510",
-        "https://static.wikia.nocookie.net/eldenring/images/3/3d/ER_Icon_Remembrance_of_the_Starscourge.png/revision/latest/scale-to-width-down/1000?cb=20220412231542",
-        "https://static.wikia.nocookie.net/eldenring/images/2/2c/ER_Icon_Remembrance_of_the_Regal_Ancestor.png/revision/latest?cb=20220412231535",
-        "https://static.wikia.nocookie.net/eldenring/images/2/2b/ER_Icon_Remembrance_of_the_Naturalborn.png/revision/latest?cb=20220412231525",
-        "https://static.wikia.nocookie.net/eldenring/images/a/a6/ER_Icon_Remembrance_of_the_Lichdragon.png/revision/latest?cb=20220412231519",
-    ]
 
+    bookmarks = getBookmarks()["roots"]
 
-    set_wallpaper(random.choice(backgrounds))
+    index = 0
+
+    while index < len(bookmarks.keys()):
+        temp = findBookmarkFolder(
+            bookmarks[list(bookmarks.keys())[index]], "Backgrounds"
+        )
+        if temp:
+            backgroundFolder = temp
+            index = len(bookmarks.keys())
+        index += 1
+
+    backgrounds = getBookmarksFromFolder(backgroundFolder)
+    wallpaper = random.choice(list(backgrounds.items()))
+
+    try:
+        set_wallpaper(wallpaper[1])
+    except Exception:
+        print(f"Error setting {wallpaper[0]} as wallpaper.")
