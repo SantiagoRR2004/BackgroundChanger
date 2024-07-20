@@ -10,13 +10,30 @@ def set_wallpaper(image_path: str) -> None:
     Set the wallpaper of the current desktop environment.
     If the image file exists we will say it is a path in the system.
     It should be an absolute path.
-    If not we will suppose it is a URL and use it directly.
+    If not we will try to download it.
 
+    We can't use url because there it does a Ddos attack on
+    the router. If we fix it, we would use
+    gsettings set org.gnome.desktop.background picture-uri "https://example.com/image.jpg"
+    
     Args:
         image_path (str): The path to the image file.
     """
     system = platform.system()
-
+    
+    if not os.path.exists(image_path):
+        tempFile = os.path.join(os.path.expanduser("~"), ".tempBackground.png")
+        import requests
+        response = requests.get(image_path, stream=True)
+        if response.status_code == 200:
+            with open(tempFile, "wb") as file:
+                file.write(response.content)
+            image_path = tempFile
+        else:
+            raise Exception(f"Failed to retrieve image. Status code: {response.status_code}")
+    else:
+        image_path = os.path.abspath(image_path)
+    
     if system == "Windows":
         ctypes.windll.user32.SystemParametersInfoW(20, 0, image_path, 3)
     elif system == "Darwin":  # macOS
@@ -27,21 +44,15 @@ def set_wallpaper(image_path: str) -> None:
         """
         subprocess.run(["osascript", "-e", script])
     elif system == "Linux":
-        command = """export DISPLAY=":0"
+
+        command = f"""export DISPLAY=":0"
 export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
-gsettings set org.gnome.desktop.background picture-uri"""
+gsettings set org.gnome.desktop.background picture-uri file://{image_path}
+gsettings set org.gnome.desktop.background picture-options scaled"""
 
-        if os.path.exists(image_path):
-            command += f" file://{image_path}"
-        else:
-            command += f" {image_path}"
-        command += (
-            "\n gsettings set org.gnome.desktop.background picture-options scaled"
-        )
         subprocess.run(command, shell=True)
-
     else:
-        print("Unsupported operating system")
+        raise Exception("Unsupported operating system")
 
 
 def getBookmarks() -> dict:
@@ -148,5 +159,6 @@ if __name__ == "__main__":
 
     try:
         set_wallpaper(wallpaper[1])
-    except Exception:
+    except Exception as e:
         print(f"Error setting {wallpaper[0]} as wallpaper.")
+        print(e)
