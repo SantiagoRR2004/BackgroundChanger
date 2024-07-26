@@ -44,9 +44,19 @@ def set_wallpaper(image_path: str) -> None:
         """
         subprocess.run(["osascript", "-e", script])
     elif system == "Linux":
+        import random
+        """
+        The original Linux color was
+        #2c001e
+        This was obtrined with the command gsettings get org.gnome.desktop.background primary-color
+        """
+        colors = ["00", "FF", f"{random.randint(0,255):02X}"]
+        random.shuffle(colors)
+
 
         command = f"""export DISPLAY=":0"
 export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
+gsettings set org.gnome.desktop.background primary-color '#{''.join(colors)}'
 gsettings set org.gnome.desktop.background picture-uri file://{image_path}
 gsettings set org.gnome.desktop.background picture-options scaled"""
 
