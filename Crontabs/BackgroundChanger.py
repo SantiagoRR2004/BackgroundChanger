@@ -26,9 +26,13 @@ def set_wallpaper(image_path: str) -> None:
         import requests
         response = requests.get(image_path, stream=True)
         if response.status_code == 200:
-            with open(tempFile, "wb") as file:
-                file.write(response.content)
-            image_path = tempFile
+            if not response.headers.get("content-type") or response.headers.get("content-type").startswith("image"):
+                # Problem with .webp images because they don't have the content-type
+                with open(tempFile, "wb") as file:
+                    file.write(response.content)
+                image_path = tempFile
+            else:
+                raise Exception(f"It is not an image. Content type: {response.headers.get("content-type")}")
         else:
             raise Exception(f"Failed to retrieve image. Status code: {response.status_code}")
     else:
@@ -167,6 +171,7 @@ if __name__ == "__main__":
     backgrounds = getBookmarksFromFolder(backgroundFolder)
     wallpaper = random.choice(list(backgrounds.items()))
 
+    # for wallpaper in backgrounds.items(): # Check all wallpapers
     try:
         set_wallpaper(wallpaper[1])
     except Exception as e:
