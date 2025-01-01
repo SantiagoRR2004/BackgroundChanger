@@ -15,29 +15,36 @@ def set_wallpaper(image_path: str) -> None:
     We can't use url because there it does a Ddos attack on
     the router. If we fix it, we would use
     gsettings set org.gnome.desktop.background picture-uri "https://example.com/image.jpg"
-    
+
     Args:
         image_path (str): The path to the image file.
     """
     system = platform.system()
-    
+
     if not os.path.exists(image_path):
         tempFile = os.path.join(os.path.expanduser("~"), ".tempBackground.png")
         import requests
+
         response = requests.get(image_path, stream=True)
         if response.status_code == 200:
-            if not response.headers.get("content-type") or response.headers.get("content-type").startswith("image"):
+            if not response.headers.get("content-type") or response.headers.get(
+                "content-type"
+            ).startswith("image"):
                 # Problem with .webp images because they don't have the content-type
                 with open(tempFile, "wb") as file:
                     file.write(response.content)
                 image_path = tempFile
             else:
-                raise Exception(f"It is not an image. Content type: {response.headers.get("content-type")}")
+                raise Exception(
+                    f"It is not an image. Content type: {response.headers.get("content-type")}"
+                )
         else:
-            raise Exception(f"Failed to retrieve image. Status code: {response.status_code}")
+            raise Exception(
+                f"Failed to retrieve image. Status code: {response.status_code}"
+            )
     else:
         image_path = os.path.abspath(image_path)
-    
+
     if system == "Windows":
         ctypes.windll.user32.SystemParametersInfoW(20, 0, image_path, 3)
     elif system == "Darwin":  # macOS
@@ -49,6 +56,7 @@ def set_wallpaper(image_path: str) -> None:
         subprocess.run(["osascript", "-e", script])
     elif system == "Linux":
         import random
+
         """
         The original Linux color was
         #2c001e
@@ -56,7 +64,6 @@ def set_wallpaper(image_path: str) -> None:
         """
         colors = ["00", "FF", f"{random.randint(0,255):02X}"]
         random.shuffle(colors)
-
 
         command = f"""export DISPLAY=":0"
 export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
