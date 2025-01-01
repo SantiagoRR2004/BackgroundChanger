@@ -1,11 +1,11 @@
 {
-    "python.linting.pylintArgs": [
-        "--variable-naming-style=camelCase",
-        "--function-naming-style=camelCase",
-        "--method-naming-style=camelCase",
-        "--argument-naming-style=camelCase",
-        "--attr-naming-style=camelCase",
-        "--class-naming-style=PascalCase",
-        "--class-const-naming-style=camelCase"
-    ]
+  "python.linting.pylintArgs": [
+    "--variable-naming-style=camelCase",
+    "--function-naming-style=camelCase",
+    "--method-naming-style=camelCase",
+    "--argument-naming-style=camelCase",
+    "--attr-naming-style=camelCase",
+    "--class-naming-style=PascalCase",
+    "--class-const-naming-style=camelCase"
+  ]
 }
