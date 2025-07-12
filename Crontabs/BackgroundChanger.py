@@ -6,6 +6,7 @@ import json
 import random
 import requests
 
+
 def set_wallpaper(image_path: str) -> None:
     """
     Set the wallpaper of the current desktop environment.
