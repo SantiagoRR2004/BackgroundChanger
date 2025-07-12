@@ -3,7 +3,8 @@ import subprocess
 import ctypes
 import os
 import json
-
+import random
+import requests
 
 def set_wallpaper(image_path: str) -> None:
     """
@@ -23,7 +24,6 @@ def set_wallpaper(image_path: str) -> None:
 
     if not os.path.exists(image_path):
         tempFile = os.path.join(os.path.expanduser("~"), ".tempBackground.png")
-        import requests
 
         response = requests.get(image_path, stream=True)
         if response.status_code == 200:
@@ -55,8 +55,6 @@ def set_wallpaper(image_path: str) -> None:
         """
         subprocess.run(["osascript", "-e", script])
     elif system == "Linux":
-        import random
-
         """
         The original Linux color was
         #2c001e
@@ -160,7 +158,6 @@ def getBookmarksFromFolder(bookmarks: dict, solution: dict = {}) -> dict:
 
 
 if __name__ == "__main__":
-    import random
 
     bookmarks = getBookmarks()["roots"]
 
