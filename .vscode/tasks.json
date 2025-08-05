@@ -21,6 +21,6 @@
         "runOn": "folderOpen" // Run this task when the folder is opened
       },
       "problemMatcher": []
-    },
+    }
   ]
 }
