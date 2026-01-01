@@ -16,5 +16,5 @@ if __name__ == "__main__":
 
     CrontabManager().setup(
         environmentPath=environmentPath,
-        pythonFiles=[{"file": file} for file in pythonFiles],
+        pythonFiles=pythonFiles,
     )
