@@ -1,2 +1,3 @@
+git+https://github.com/SantiagoRR2004/pythocron.git
 requests
 black
