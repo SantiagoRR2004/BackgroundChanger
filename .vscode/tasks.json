@@ -4,7 +4,7 @@
     {
       "label": "Setup Environment and Install Dependencies",
       "type": "shell",
-      "command": "python3 -m venv .venv && source .venv/bin/activate && pip install --force-reinstall --no-cache-dir -r requirements.txt",
+      "command": "./environment.sh",
       "windows": {
         "command": "python3 -m venv .venv; Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process; .venv\\Scripts\\Activate.ps1; pip install -r requirements.txt"
       },
