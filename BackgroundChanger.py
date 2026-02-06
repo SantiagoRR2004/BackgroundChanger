@@ -28,6 +28,7 @@ def set_wallpaper(image_path: str) -> None:
 
         response = requests.get(image_path, stream=True)
         if response.status_code == 200:
+
             if not response.headers.get("content-type") or response.headers.get(
                 "content-type"
             ).startswith("image"):
@@ -39,10 +40,12 @@ def set_wallpaper(image_path: str) -> None:
                 raise Exception(
                     f"It is not an image. Content type: {response.headers.get("content-type")}"
                 )
+
         else:
             raise Exception(
                 f"Failed to retrieve image. Status code: {response.status_code}"
             )
+
     else:
         image_path = os.path.abspath(image_path)
 
@@ -85,7 +88,9 @@ def getBookmarks() -> dict:
         dict: The bookmarks tree.
     """
     system = platform.system()
+
     if system == "Windows":
+        # Not tested yet
         path = os.path.join(
             os.path.expanduser("~"),
             "AppData",
@@ -96,7 +101,9 @@ def getBookmarks() -> dict:
             "Default",
             "Bookmarks",
         )
+
     elif system == "Darwin":  # macOS
+        # Not tested yet
         path = os.path.join(
             os.path.expanduser("~"),
             "Library",
@@ -106,14 +113,18 @@ def getBookmarks() -> dict:
             "Default",
             "Bookmarks",
         )
+
     elif system == "Linux":
         path = os.path.join(
             os.path.expanduser("~"), ".config", "google-chrome", "Default", "Bookmarks"
         )
     else:
         print("Unsupported operating system")
+
+    # Read the bookmarks file
     with open(path, "r") as file:
         data = json.load(file)
+
     return data
 
 
@@ -159,6 +170,16 @@ def getBookmarksFromFolder(bookmarks: dict, solution: dict = {}) -> dict:
 
 
 if __name__ == "__main__":
+    # Get the current directory
+    currentDirectory = os.path.dirname(os.path.abspath(__file__))
+    failureFile = os.path.join(currentDirectory, "failures.json")
+
+    # Load the failures
+    if not os.path.exists(failureFile):
+        failures = {}
+    else:
+        with open(failureFile, "r", encoding="utf-8") as file:
+            failures = json.load(file)
 
     bookmarks = getBookmarks()["roots"]
 
@@ -182,3 +203,21 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Error setting {wallpaper[0]} as wallpaper.")
         print(e)
+
+        try:
+            response = requests.get("https://www.google.com")
+            if response.status_code == 200:
+                # There is no problem with the internet connection
+                failures[wallpaper[0]] = failures.get(wallpaper[0], 0) + 1
+        except Exception as e:
+            print("Problem with the internet connection.")
+
+    # Sort by failures
+    failures = dict(
+        sorted(failures.items(), key=lambda item: (item[1], item[0]), reverse=True)
+    )
+
+    # Save the failures
+    with open(failureFile, "w", encoding="utf-8") as file:
+        json.dump(failures, file, indent=2, ensure_ascii=False)
+        file.write("\n")
