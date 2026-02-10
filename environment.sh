@@ -1,10 +1,12 @@
 #!/bin/bash
 
+SCRIPT_DIR=$(dirname "$0")
+
 # First create a virtual environment
-python3 -m venv .venv
+python3 -m venv "$SCRIPT_DIR/.venv"
 
 # Then activate it
-source .venv/bin/activate
+source "$SCRIPT_DIR/.venv/bin/activate"
 
 # Finally install the required packages
-pip install -r requirements.txt
+pip install -r "$SCRIPT_DIR/requirements.txt"
