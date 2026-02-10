@@ -1,5 +1,5 @@
-from pythocron.CrontabManager import CrontabManager
 import subprocess
+import sys
 import os
 
 """
@@ -14,6 +14,15 @@ if __name__ == "__main__":
     # Run the environment setup bash script
     environmentScript = os.path.join(currentDirectory, "environment.sh")
     subprocess.run(["bash", environmentScript], check=True)
+
+    # Path to your venv site-packages
+    venvPath = os.path.join(
+        currentDirectory, ".venv", "lib", "python3.12", "site-packages"
+    )
+    sys.path.insert(0, str(venvPath))
+
+    # Import the modules
+    from pythocron.CrontabManager import CrontabManager
 
     environmentPath = os.path.join(currentDirectory, ".venv", "bin", "activate")
 
