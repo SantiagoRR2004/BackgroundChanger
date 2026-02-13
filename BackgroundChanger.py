@@ -172,14 +172,15 @@ def getBookmarksFromFolder(bookmarks: dict, solution: dict = {}) -> dict:
 if __name__ == "__main__":
     # Get the current directory
     currentDirectory = os.path.dirname(os.path.abspath(__file__))
+    backgroundsFile = os.path.join(currentDirectory, "backgrounds.json")
     failureFile = os.path.join(currentDirectory, "failures.json")
 
-    # Load the failures
-    if not os.path.exists(failureFile):
-        failures = {}
+    # Load the background log
+    if not os.path.exists(backgroundsFile):
+        backgroundsLog = {}
     else:
-        with open(failureFile, "r", encoding="utf-8") as file:
-            failures = json.load(file)
+        with open(backgroundsFile, "r", encoding="utf-8") as file:
+            backgroundsLog = json.load(file)
 
     bookmarks = getBookmarks()["roots"]
 
@@ -197,9 +198,14 @@ if __name__ == "__main__":
     backgrounds = getBookmarksFromFolder(backgroundFolder)
     wallpaper = random.choice(list(backgrounds.items()))
 
+    # Add if it is not in the log
+    if not backgroundsLog.get(wallpaper[0]):
+        backgroundsLog[wallpaper[0]] = {"failures": 0, "successes": 0}
+
     # for wallpaper in backgrounds.items(): # Check all wallpapers
     try:
         set_wallpaper(wallpaper[1])
+        backgroundsLog[wallpaper[0]]["successes"] += 1
     except Exception as e:
         print(f"Error setting {wallpaper[0]} as wallpaper.")
         print(e)
@@ -208,16 +214,35 @@ if __name__ == "__main__":
             response = requests.get("https://www.google.com")
             if response.status_code == 200:
                 # There is no problem with the internet connection
-                failures[wallpaper[0]] = failures.get(wallpaper[0], 0) + 1
+                backgroundsLog[wallpaper[0]]["failures"] += 1
         except Exception as e:
             print("Problem with the internet connection.")
 
-    # Sort by failures
+    # Sort by name of the wallpaper
+    backgroundsLog = dict(
+        sorted(backgroundsLog.items(), key=lambda item: item[0], reverse=False)
+    )
+
+    # Save the background log
+    with open(backgroundsFile, "w", encoding="utf-8") as file:
+        json.dump(backgroundsLog, file, indent=2, ensure_ascii=False)
+        file.write("\n")
+
+    # Create a log of the failures
+    failures = {}
+    for wallpaper in backgroundsLog.keys():
+        if backgroundsLog[wallpaper]["failures"] > 0:
+            failures[wallpaper] = backgroundsLog[wallpaper]["failures"] / (
+                backgroundsLog[wallpaper]["failures"]
+                + backgroundsLog[wallpaper]["successes"]
+            )
+
+    # Sort by failure rate
     failures = dict(
         sorted(failures.items(), key=lambda item: (item[1], item[0]), reverse=True)
     )
 
-    # Save the failures
+    # Save the failure log
     with open(failureFile, "w", encoding="utf-8") as file:
         json.dump(failures, file, indent=2, ensure_ascii=False)
         file.write("\n")
