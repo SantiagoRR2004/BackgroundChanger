@@ -26,7 +26,17 @@ def set_wallpaper(image_path: str) -> None:
     if not os.path.exists(image_path):
         tempFile = os.path.join(os.path.expanduser("~"), ".tempBackground.png")
 
-        response = requests.get(image_path, stream=True)
+        response = requests.get(
+            image_path,
+            stream=True,
+            headers={
+                "User-Agent": "Mozilla/5.0",
+                "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Accept-Encoding": "gzip, deflate, br",
+            },
+        )
+
         if response.status_code == 200:
 
             if not response.headers.get("content-type") or response.headers.get(
